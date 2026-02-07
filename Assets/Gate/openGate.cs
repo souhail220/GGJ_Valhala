@@ -10,6 +10,10 @@ public class openGate : MonoBehaviour
     public float door2OpenX = -0.85f;
     public float speed = 3f;
 
+    
+    public AudioSource doorAudio; // assign in Inspector
+    public float audioPitch = 2f; // 2x speed
+
     private Vector3 door1ClosedPos;
     private Vector3 door2ClosedPos;
 
@@ -21,6 +25,9 @@ public class openGate : MonoBehaviour
     {
         door1ClosedPos = door01.localPosition;
         door2ClosedPos = door02.localPosition;
+
+        if (doorAudio != null)
+            doorAudio.pitch = audioPitch; // speed up sound
     }
 
     void Update()
@@ -29,6 +36,7 @@ public class openGate : MonoBehaviour
         if (canInteract && Keyboard.current.eKey.wasPressedThisFrame && !isOpen)
         {
             isOpen = true;
+            PlayDoorSound();
         }
 
         MoveDoors();
@@ -67,8 +75,21 @@ public class openGate : MonoBehaviour
             playerInside = false;
             canInteract = false;
 
-            // ? Auto-close AFTER player leaves
-            isOpen = false;
+            // Auto-close after player leaves
+            if (isOpen)
+            {
+                isOpen = false;
+                PlayDoorSound();
+            }
+        }
+    }
+
+    void PlayDoorSound()
+    {
+        if (doorAudio != null)
+        {
+            doorAudio.Stop(); // restart if already playing
+            doorAudio.Play();
         }
     }
 }
