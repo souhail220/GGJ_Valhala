@@ -104,8 +104,8 @@ public class PlayerMovement : MonoBehaviour
     
     void CheckGround()
     {
-        // Raycast down to check if grounded
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + groundCheckDistance, groundMask);
+        // Use CharacterController's built-in ground detection
+        isGrounded = characterController.isGrounded;
     }
     
     void HandleMovement()

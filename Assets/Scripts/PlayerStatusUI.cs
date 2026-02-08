@@ -19,7 +19,7 @@ public class PlayerStatusUI : MonoBehaviour
             playerHealth = PlayerHealth.Instance;
             if (playerHealth == null)
             {
-                playerHealth = FindObjectOfType<PlayerHealth>();
+                playerHealth = FindAnyObjectByType<PlayerHealth>();
             }
             if (playerHealth == null) return;
         }

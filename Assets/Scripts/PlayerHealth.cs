@@ -31,6 +31,12 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private float maxGlitchIntensity = 1f;
     [SerializeField] private float glitchDecayRate = 0.5f; // How fast glitch fades
     
+    [Header("Damage Settings")]
+    [SerializeField] private float invincibilityDuration = 1f; // Seconds of i-frames after taking damage
+    [SerializeField] private bool isDead = false;
+    private float invincibilityTimer = 0f;
+    private bool isInvincible = false;
+
     [Header("Events")]
     public UnityEvent<float> OnHealthChanged;
     public UnityEvent<float> OnOxygenChanged;
@@ -39,6 +45,8 @@ public class PlayerHealth : MonoBehaviour
     public UnityEvent<float> OnColdResistanceChanged;
     public UnityEvent OnEnergyCoreObtained;
     public UnityEvent<float> OnGlitchIntensityChanged;
+    public UnityEvent<float> OnDamageTaken;  // Passes damage amount
+    public UnityEvent OnPlayerDeath;
     
     private static PlayerHealth instance;
 
@@ -67,6 +75,19 @@ public class PlayerHealth : MonoBehaviour
     void Update()
     {
         HandleGlitch();
+        HandleInvincibility();
+    }
+    
+    void HandleInvincibility()
+    {
+        if (isInvincible)
+        {
+            invincibilityTimer -= Time.deltaTime;
+            if (invincibilityTimer <= 0f)
+            {
+                isInvincible = false;
+            }
+        }
     }
     
     void HandleGlitch()
@@ -126,6 +147,34 @@ public class PlayerHealth : MonoBehaviour
     }
     
     // Health methods
+    public void TakeDamage(float damage)
+    {
+        if (isDead || isInvincible || damage <= 0f) return;
+        
+        currentHealth -= damage;
+        currentHealth = Mathf.Max(currentHealth, 0f);
+        
+        OnHealthChanged?.Invoke(currentHealth);
+        OnDamageTaken?.Invoke(damage);
+        
+        // Trigger invincibility frames
+        isInvincible = true;
+        invincibilityTimer = invincibilityDuration;
+        
+        if (currentHealth <= 0f)
+        {
+            Die();
+        }
+    }
+    
+    private void Die()
+    {
+        if (isDead) return;
+        isDead = true;
+        OnPlayerDeath?.Invoke();
+        Debug.Log("Player has died!");
+    }
+    
     public void AddHealth(float amount)
     {
         currentHealth += amount;
@@ -197,6 +246,9 @@ public class PlayerHealth : MonoBehaviour
     public float GetColdResistance() => coldResistance;
     public float GetMaxColdResistance() => maxColdResistance;
     public float GetColdResistancePercentage() => coldResistance / maxColdResistance;
+    
+    public bool IsDead() => isDead;
+    public bool IsInvincible() => isInvincible;
     
     public static PlayerHealth Instance => instance;
 }
