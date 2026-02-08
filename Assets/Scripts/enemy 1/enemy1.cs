@@ -177,6 +177,7 @@ public class enemy1 : MonoBehaviour
         if (laserPrefab != null)
         {
             LaserAttack laserInstance = Instantiate(laserPrefab, laserOrigin != null ? laserOrigin.position : transform.position, Quaternion.identity);
+            Debug.Log("Enemy firing laser from " + laserInstance.transform.position + " towards " + (target != null ? target.position : "forward direction"));
             Vector3 origin = laserOrigin != null ? laserOrigin.position : transform.position;
             Vector3 direction = target != null ? (target.position - origin).normalized : transform.forward;
             laserInstance.Fire(origin, direction, laserRange, laserDamage, laserHitMask);

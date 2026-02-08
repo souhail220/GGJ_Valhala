@@ -74,12 +74,15 @@ public class Controlplayer : MonoBehaviour
             isGrounded = true;
         }
     }
-
     void OnCollisionExit(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ground"))
+
+        void OnCollisionExit(Collision collision)
         {
-            isGrounded = false;
+            if (collision.gameObject.CompareTag("Ground"))
+            {
+                isGrounded = false;
+            }
         }
     }
 }

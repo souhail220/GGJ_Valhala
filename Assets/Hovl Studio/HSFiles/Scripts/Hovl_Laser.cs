@@ -74,6 +74,11 @@ public class Hovl_Laser : MonoBehaviour
                 //LaserSpeed[2] = (LaserStartSpeed[2] * 4) / (Vector3.Distance(transform.position, hit.point));
                 //Destroy(hit.transform.gameObject); // destroy the object hit
                 //hit.collider.SendMessage("SomeMethod"); // example
+                if (hit.collider != null)
+                {
+                    var lc = hit.collider.GetComponent<laserCollision>();
+                    //if (lc != null) lc.ApplyLaserHit();
+                }
                 /*if (hit.collider.tag == "Enemy")
                 {
                     hit.collider.GetComponent<HittedObject>().TakeDamage(damageOverTime * Time.deltaTime);

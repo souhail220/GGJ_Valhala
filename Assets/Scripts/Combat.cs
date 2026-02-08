@@ -8,26 +8,32 @@ public class Combat : MonoBehaviour
     [SerializeField] private float fireRate = 0.2f; // Time between shots
     [SerializeField] private float laserRange = 100f;
     [SerializeField] private float laserDuration = 0.1f; // How long laser beam is visible
-    
+
     [Header("Laser Visual")]
     [SerializeField] private GameObject laserPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private bool followCameraRotation = false;
     [SerializeField] private LayerMask hitLayers;
-    
+
     [Header("Effects")]
     [SerializeField] private GameObject hitEffectPrefab;
     [SerializeField] private GameObject muzzleFlashPrefab;
-    
+
+    [Header("Spawned Sphere Bullet (optional)")]
+    [SerializeField] private GameObject sphereBulletPrefab;
+    [SerializeField] private float sphereSpeed = 100f;
+    [SerializeField] private float sphereLifetime = 10f;
+    [SerializeField] private float sphereSpawnOffset = 0.5f;
+
     // State
     private float lastFireTime = 0f;
     private GameObject currentLaser = null;
-    
+
     // Input System
     private PlayerInput playerInput;
     private InputAction attackAction;
-    
+
     void Start()
     {
         // Initialize fire point if not set
@@ -40,7 +46,7 @@ public class Combat : MonoBehaviour
         {
             cameraTransform = Camera.main.transform;
         }
-        
+
         // Set up Input System
         playerInput = GetComponent<PlayerInput>();
         if (playerInput != null)
@@ -52,7 +58,7 @@ public class Combat : MonoBehaviour
             Debug.LogWarning("PlayerInput component not found on " + gameObject.name);
         }
     }
-    
+
     void Update()
     {
         // Check for fire input using new Input System
@@ -71,13 +77,13 @@ public class Combat : MonoBehaviour
             firePoint.localRotation = Quaternion.Euler(pitch, 0f, 0f);
         }
     }
-    
+
     void FireLaser()
     {
         lastFireTime = Time.time;
-        
+
         Debug.Log("Laser fired!");
-        
+
         // Aim from camera (crosshair) but fire from gun to keep the beam straight out of the muzzle
         Transform aimTransform = cameraTransform != null ? cameraTransform : firePoint;
         Vector3 aimOrigin = aimTransform.position;
@@ -105,6 +111,7 @@ public class Combat : MonoBehaviour
                 health.TakeDamage(laserDamage);
             }
 
+            // Draw laser from muzzle to the actual hit point
             SpawnLaserEffect(firePoint.position, muzzleHit.point);
 
             if (hitEffectPrefab != null)
@@ -118,7 +125,7 @@ public class Combat : MonoBehaviour
             // No obstruction from the gun, draw to the aim point
             SpawnLaserEffect(firePoint.position, targetPoint);
         }
-        
+
         // Spawn muzzle flash
         if (muzzleFlashPrefab != null)
         {
@@ -126,7 +133,7 @@ public class Combat : MonoBehaviour
             Destroy(muzzleFlash, 1f);
         }
     }
-    
+
     void SpawnLaserEffect(Vector3 start, Vector3 end)
     {
         if (laserPrefab == null)
@@ -134,30 +141,55 @@ public class Combat : MonoBehaviour
             Debug.LogWarning("Laser prefab not assigned! Assign a laser from Hovl Studio in the Inspector.");
             return;
         }
-        
+
         // Destroy previous laser if it exists
         if (currentLaser != null)
         {
             Destroy(currentLaser);
         }
-        
+
         // Spawn laser at fire point
         currentLaser = Instantiate(laserPrefab, start, firePoint.rotation);
-        
+
         // Rotate laser to point toward the hit point
         Vector3 direction = (end - start).normalized;
         currentLaser.transform.forward = direction;
-        
+
+        // Instantiate a long-range physics projectile alongside the visual laser
+        if (sphereBulletPrefab != null)
+        {
+            Vector3 spawnPos = start + direction * sphereSpawnOffset;
+            Quaternion spawnRot = Quaternion.LookRotation(direction);
+            GameObject sphere = Instantiate(sphereBulletPrefab, spawnPos, spawnRot);
+
+            // Initialize projectile with combat parameters (requires BulletProjectile component)
+            var proj = sphere.GetComponent<BulletProjectile>();
+            if (proj != null)
+            {
+                proj.Initialize(sphereSpeed, laserDamage, sphereLifetime, hitLayers, hitEffectPrefab);
+            }
+            else
+            {
+                // Fallback: try to set Rigidbody velocity directly
+                var rb = sphere.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.linearVelocity = direction * sphereSpeed;
+                    Destroy(sphere, sphereLifetime);
+                }
+            }
+        }
+
         // Destroy laser after duration
         Destroy(currentLaser, laserDuration);
     }
-    
+
     // Visualize laser range in editor
     private void OnDrawGizmosSelected()
     {
         if (firePoint == null)
             firePoint = transform;
-            
+
         Gizmos.color = Color.red;
         Gizmos.DrawRay(firePoint.position, firePoint.forward * laserRange);
     }
