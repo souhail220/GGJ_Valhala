@@ -1,22 +1,12 @@
 fileFormatVersion: 2
-guid: 58e32cec3423cda4c9929694099af070
+guid: 3b4328462aa72b54798e6db216526ed8
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: M_Gate01
-    second: {fileID: 2100000, guid: a4ffa82d392fd074bb0331c2ec3d8065, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: M_Sci-FiRoomWalls
-    second: {fileID: 2100000, guid: bf9623d562796e54ea4f1359d885757f, type: 2}
+  externalObjects: {}
   materials:
-    materialImportMode: 1
-    materialName: 1
+    materialImportMode: 2
+    materialName: 0
     materialSearch: 1
     materialLocation: 1
   animations:
